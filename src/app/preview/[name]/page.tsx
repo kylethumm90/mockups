@@ -23,12 +23,22 @@ export default function PreviewPage() {
   useEffect(() => {
     if (!code || !iframeRef.current) return;
 
-    const iframeHtml = generateIframeHtml(code);
-    const blob = new Blob([iframeHtml], { type: "text/html" });
+    const blob = new Blob([IFRAME_HTML], { type: "text/html" });
     const url = URL.createObjectURL(blob);
-    iframeRef.current.src = url;
+    const iframe = iframeRef.current;
 
-    return () => URL.revokeObjectURL(url);
+    iframe.src = url;
+
+    function onLoad() {
+      iframe.contentWindow?.postMessage({ type: "render", code }, "*");
+    }
+
+    iframe.addEventListener("load", onLoad);
+
+    return () => {
+      iframe.removeEventListener("load", onLoad);
+      URL.revokeObjectURL(url);
+    };
   }, [code]);
 
   if (error) {
@@ -75,14 +85,7 @@ export default function PreviewPage() {
   );
 }
 
-function generateIframeHtml(code: string): string {
-  // Escape the code for embedding in a script tag
-  const escapedCode = code
-    .replace(/\\/g, "\\\\")
-    .replace(/`/g, "\\`")
-    .replace(/\$/g, "\\$");
-
-  return `<!DOCTYPE html>
+const IFRAME_HTML = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -114,20 +117,19 @@ function generateIframeHtml(code: string): string {
   <div id="root"></div>
   <div id="error-overlay"></div>
   <script>
-    (function() {
+    window.addEventListener('message', function(event) {
+      if (!event.data || event.data.type !== 'render') return;
+
       var errorOverlay = document.getElementById('error-overlay');
+      errorOverlay.style.display = 'none';
 
       try {
-        var code = \`${escapedCode}\`;
-
-        // Transpile with Babel
-        var transformed = Babel.transform(code, {
+        var transformed = Babel.transform(event.data.code, {
           presets: ['react'],
           plugins: ['transform-modules-commonjs'],
           filename: 'component.jsx',
         }).code;
 
-        // Create a module-like environment
         var exports = {};
         var module = { exports: exports };
 
@@ -161,14 +163,12 @@ function generateIframeHtml(code: string): string {
           }
         );
 
-        // Get the default export
         var Component = module.exports.default || module.exports;
 
         if (typeof Component !== 'function') {
           throw new Error('No default export found. Make sure your code exports a React component as the default export.');
         }
 
-        // Render
         var root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(React.createElement(Component));
 
@@ -176,8 +176,7 @@ function generateIframeHtml(code: string): string {
         errorOverlay.style.display = 'block';
         errorOverlay.textContent = 'Render Error:\\n\\n' + err.message + '\\n\\n' + (err.stack || '');
       }
-    })();
+    });
   <\/script>
 </body>
 </html>`;
-}
