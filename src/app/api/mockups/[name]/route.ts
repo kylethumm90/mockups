@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: Promise<{ name: string }> }
 ) {
   const { name } = await params;
-  const mockups = readMockups();
+  const mockups = await readMockups();
   const mockup = mockups.find((m) => m.name === name);
 
   if (!mockup) {
@@ -21,13 +21,13 @@ export async function DELETE(
   { params }: { params: Promise<{ name: string }> }
 ) {
   const { name } = await params;
-  const mockups = readMockups();
+  const mockups = await readMockups();
   const filtered = mockups.filter((m) => m.name !== name);
 
   if (filtered.length === mockups.length) {
     return NextResponse.json({ error: "Mockup not found" }, { status: 404 });
   }
 
-  writeMockups(filtered);
+  await writeMockups(filtered);
   return NextResponse.json({ success: true });
 }

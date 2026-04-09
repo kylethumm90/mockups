@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readMockups, writeMockups } from "@/lib/mockups";
 
 export async function GET() {
-  const mockups = readMockups();
+  const mockups = await readMockups();
   return NextResponse.json(mockups);
 }
 
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-  const mockups = readMockups();
+  const mockups = await readMockups();
 
   const existingIndex = mockups.findIndex((m) => m.name === slug);
   if (existingIndex >= 0) {
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     mockups.push({ name: slug, code, createdAt: new Date().toISOString() });
   }
 
-  writeMockups(mockups);
+  await writeMockups(mockups);
 
   return NextResponse.json({ name: slug });
 }
