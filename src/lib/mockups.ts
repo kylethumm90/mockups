@@ -3,6 +3,7 @@ import { Redis } from "@upstash/redis";
 export interface Mockup {
   name: string;
   code: string;
+  tags: string[];
   createdAt: string;
 }
 

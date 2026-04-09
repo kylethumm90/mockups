@@ -8,7 +8,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, code } = body;
+  const { name, code, tags } = body;
 
   if (!name || !code) {
     return NextResponse.json(
@@ -24,11 +24,13 @@ export async function POST(request: NextRequest) {
 
   const mockups = await readMockups();
 
+  const parsedTags: string[] = Array.isArray(tags) ? tags : [];
+
   const existingIndex = mockups.findIndex((m) => m.name === slug);
   if (existingIndex >= 0) {
-    mockups[existingIndex] = { name: slug, code, createdAt: new Date().toISOString() };
+    mockups[existingIndex] = { name: slug, code, tags: parsedTags, createdAt: new Date().toISOString() };
   } else {
-    mockups.push({ name: slug, code, createdAt: new Date().toISOString() });
+    mockups.push({ name: slug, code, tags: parsedTags, createdAt: new Date().toISOString() });
   }
 
   await writeMockups(mockups);
