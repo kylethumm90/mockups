@@ -1,6 +1,25 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { readMockups } from "@/lib/mockups";
 
-const html = `<!DOCTYPE html>
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ name: string }> }
+) {
+  const { name } = await params;
+  const mockups = await readMockups();
+  const mockup = mockups.find((m) => m.name === name);
+
+  if (!mockup) {
+    return new NextResponse("<h1>Mockup not found</h1>", {
+      status: 404,
+      headers: { "Content-Type": "text/html" },
+    });
+  }
+
+  // Base64 encode the code to avoid ALL escaping issues
+  const base64Code = Buffer.from(mockup.code).toString("base64");
+
+  const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -32,14 +51,12 @@ const html = `<!DOCTYPE html>
   <div id="root"></div>
   <div id="error-overlay"></div>
   <script>
-    window.addEventListener('message', function(event) {
-      if (!event.data || event.data.type !== 'render') return;
-
+    (function() {
       var errorOverlay = document.getElementById('error-overlay');
-      errorOverlay.style.display = 'none';
-
       try {
-        var transformed = Babel.transform(event.data.code, {
+        var code = atob("${base64Code}");
+
+        var transformed = Babel.transform(code, {
           presets: ['react'],
           plugins: ['transform-modules-commonjs'],
           filename: 'component.jsx',
@@ -91,12 +108,11 @@ const html = `<!DOCTYPE html>
         errorOverlay.style.display = 'block';
         errorOverlay.textContent = 'Render Error:\\n\\n' + err.message + '\\n\\n' + (err.stack || '');
       }
-    });
+    })();
   </script>
 </body>
 </html>`;
 
-export async function GET() {
   return new NextResponse(html, {
     headers: { "Content-Type": "text/html" },
   });

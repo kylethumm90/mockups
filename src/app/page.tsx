@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface Mockup {
@@ -237,32 +237,22 @@ function MockupCard({
   mockup: Mockup;
   onDelete: () => void;
 }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  const sendCode = useCallback(() => {
-    iframeRef.current?.contentWindow?.postMessage(
-      { type: "render", code: mockup.code },
-      "*"
-    );
-  }, [mockup.code]);
-
   return (
     <div className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all group">
       <a href={`/preview/${mockup.name}`} className="block">
         <div className="relative w-full bg-gray-50 overflow-hidden" style={{ height: 200 }}>
           <iframe
-            ref={iframeRef}
-            src="/api/preview-frame"
-            onLoad={sendCode}
+            src={`/api/preview/${mockup.name}`}
             title={`Thumbnail: ${mockup.name}`}
             className="pointer-events-none border-0 origin-top-left"
+            loading="lazy"
+            tabIndex={-1}
             style={{
               width: 1280,
               height: 800,
               transform: "scale(0.234375)",
               transformOrigin: "top left",
             }}
-            tabIndex={-1}
           />
           <div className="absolute inset-0 bg-transparent group-hover:bg-black/5 transition-colors" />
         </div>
