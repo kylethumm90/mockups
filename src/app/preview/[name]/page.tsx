@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
-import { IFRAME_HTML } from "@/lib/iframe-html";
 
 export default function PreviewPage() {
   const params = useParams();
@@ -21,26 +20,14 @@ export default function PreviewPage() {
       .catch((err) => setError(err.message));
   }, [name]);
 
-  useEffect(() => {
-    if (!code || !iframeRef.current) return;
-
-    const blob = new Blob([IFRAME_HTML], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const iframe = iframeRef.current;
-
-    iframe.src = url;
-
-    function onLoad() {
-      iframe.contentWindow?.postMessage({ type: "render", code }, "*");
+  function handleIframeLoad() {
+    if (code && iframeRef.current) {
+      iframeRef.current.contentWindow?.postMessage(
+        { type: "render", code },
+        "*"
+      );
     }
-
-    iframe.addEventListener("load", onLoad);
-
-    return () => {
-      iframe.removeEventListener("load", onLoad);
-      URL.revokeObjectURL(url);
-    };
-  }, [code]);
+  }
 
   if (error) {
     return (
@@ -78,11 +65,11 @@ export default function PreviewPage() {
       </div>
       <iframe
         ref={iframeRef}
+        src="/api/preview-frame"
+        onLoad={handleIframeLoad}
         className="w-full h-screen border-0"
-        sandbox="allow-scripts allow-same-origin"
         title={`Preview: ${name}`}
       />
     </>
   );
 }
-

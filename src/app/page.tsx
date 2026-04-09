@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { IFRAME_HTML } from "@/lib/iframe-html";
 
 interface Mockup {
   name: string;
@@ -239,7 +238,6 @@ function MockupCard({
   onDelete: () => void;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
   const sendCode = useCallback(() => {
     iframeRef.current?.contentWindow?.postMessage(
@@ -248,34 +246,24 @@ function MockupCard({
     );
   }, [mockup.code]);
 
-  useEffect(() => {
-    const blob = new Blob([IFRAME_HTML], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    setBlobUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, []);
-
   return (
     <div className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all group">
       <a href={`/preview/${mockup.name}`} className="block">
         <div className="relative w-full bg-gray-50 overflow-hidden" style={{ height: 200 }}>
-          {blobUrl && (
-            <iframe
-              ref={iframeRef}
-              src={blobUrl}
-              onLoad={sendCode}
-              sandbox="allow-scripts allow-same-origin"
-              title={`Thumbnail: ${mockup.name}`}
-              className="pointer-events-none border-0 origin-top-left"
-              style={{
-                width: 1280,
-                height: 800,
-                transform: "scale(0.234375)",
-                transformOrigin: "top left",
-              }}
-              tabIndex={-1}
-            />
-          )}
+          <iframe
+            ref={iframeRef}
+            src="/api/preview-frame"
+            onLoad={sendCode}
+            title={`Thumbnail: ${mockup.name}`}
+            className="pointer-events-none border-0 origin-top-left"
+            style={{
+              width: 1280,
+              height: 800,
+              transform: "scale(0.234375)",
+              transformOrigin: "top left",
+            }}
+            tabIndex={-1}
+          />
           <div className="absolute inset-0 bg-transparent group-hover:bg-black/5 transition-colors" />
         </div>
       </a>
