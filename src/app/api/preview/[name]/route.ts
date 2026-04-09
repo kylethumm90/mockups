@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readMockups } from "@/lib/mockups";
 
+function isRawHtml(code: string): boolean {
+  const trimmed = code.trimStart();
+  return (
+    trimmed.startsWith("<!DOCTYPE") ||
+    trimmed.startsWith("<!doctype") ||
+    trimmed.startsWith("<html") ||
+    trimmed.startsWith("<HTML")
+  );
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ name: string }> }
@@ -16,7 +26,14 @@ export async function GET(
     });
   }
 
-  // Base64 encode the code to avoid ALL escaping issues
+  // Raw HTML — serve directly, no Babel needed
+  if (isRawHtml(mockup.code)) {
+    return new NextResponse(mockup.code, {
+      headers: { "Content-Type": "text/html" },
+    });
+  }
+
+  // JSX component — wrap with Babel + React renderer
   const base64Code = Buffer.from(mockup.code).toString("base64");
 
   const html = `<!DOCTYPE html>
