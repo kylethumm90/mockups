@@ -8,9 +8,9 @@ export const IFRAME_HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
-  <script src="https://unpkg.com/react@18/umd/react.development.js"><\\/script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\\/script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\\/script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"><\/script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\/script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Archivo', sans-serif; }
@@ -92,6 +92,6 @@ export const IFRAME_HTML = `<!DOCTYPE html>
         errorOverlay.textContent = 'Render Error:\\n\\n' + err.message + '\\n\\n' + (err.stack || '');
       }
     });
-  <\\/script>
+  <\/script>
 </body>
 </html>`;
